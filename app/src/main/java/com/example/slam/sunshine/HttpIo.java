@@ -1,5 +1,6 @@
 package com.example.slam.sunshine;
 
+import android.net.Uri;
 import android.os.StrictMode;
 import android.util.Log;
 
@@ -15,7 +16,7 @@ import java.net.URL;
  */
 public class HttpIo {
 
-    public static String connect(){
+    public static String connect(String zip){
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
         HttpURLConnection urlConnection = null;
@@ -26,13 +27,21 @@ public class HttpIo {
 
 //        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 //        StrictMode.setThreadPolicy(policy);
+        final String serverUrlBase = "http://api.openweathermap.org/data/2.5/forecast/daily?";
 
         try {
             // Construct the URL for the OpenWeatherMap query
             // Possible parameters are avaiable at OWM's forecast API page, at
             // http://openweathermap.org/API#forecast
             //URL url = new URL( "http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7");
-            URL url = new URL( "http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7");
+            Uri builtUri = Uri.parse(serverUrlBase).buildUpon()
+                    .appendQueryParameter( "q", zip)
+                    .appendQueryParameter("mode", "json")
+                    .appendQueryParameter("units", "metric")
+                    .appendQueryParameter("cnt", "7")
+                    .build();
+            URL url = new URL(builtUri.toString());
+            Log.v("HttpIo", "Weather server URI " + builtUri.toString());
 
             // Create the request to OpenWeatherMap, and open the connection
             urlConnection = (HttpURLConnection) url.openConnection();
