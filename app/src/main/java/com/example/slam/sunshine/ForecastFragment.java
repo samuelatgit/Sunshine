@@ -1,6 +1,7 @@
 package com.example.slam.sunshine;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -41,6 +42,8 @@ public class ForecastFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setHasOptionsMenu(true);
+
+
     }
 
     @Override
@@ -82,8 +85,13 @@ public class ForecastFragment extends Fragment {
         _listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.v("Data", String.valueOf(id));
-                toastMessage(_modelAdapter.getItem(position));
+                String forecast = _modelAdapter.getItem(position);
+                Intent intent = new Intent(getActivity(), DetailActivity.class)
+                        .putExtra(Intent.EXTRA_TEXT, forecast);
+                        //.putExtra("forecast", forecast);
+                startActivity(intent);
+
+                toastMessage(forecast);
             }
         });
 
