@@ -2,7 +2,9 @@ package com.example.slam.sunshine;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -39,6 +41,12 @@ public class ForecastFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setHasOptionsMenu(true);
@@ -56,17 +64,7 @@ public class ForecastFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if(id == R.id.action_refresh){
-            FetchWeatherTask weatherTask = new FetchWeatherTask();
-            try {
-//                String[] forecasts = weatherTask.execute("94043").get();
-//                _weekForecast = Arrays.asList( forecasts);
-//                bindData(_rootView);
-//                Log.v("DATA", "here");
-                weatherTask.execute("92821");
-
-            }catch(Exception ex){
-                Log.e(this.getClass().getName(), ex.getMessage());
-            }
+            updateWeather();
             return true;
         }
 
@@ -119,6 +117,22 @@ public class ForecastFragment extends Fragment {
         t.show();
     }
 
+
+    private void updateWeather() {
+        try {
+//                String[] forecasts = weatherTask.execute("94043").get();
+//                _weekForecast = Arrays.asList( forecasts);
+//                bindData(_rootView);
+//                Log.v("DATA", "here");
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String location = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_defaultValue));
+            FetchWeatherTask weatherTask = new FetchWeatherTask();
+            weatherTask.execute(location);
+        }catch(Exception ex){
+            Log.e(this.getClass().getName(), ex.getMessage());
+        }
+    }
+
     public class FetchWeatherTask extends AsyncTask<String, Void ,String[]>
     {
         @Override
@@ -130,7 +144,8 @@ public class ForecastFragment extends Fragment {
         protected String[] doInBackground(String... urls) {
             String json = HttpIo.connect(urls[0]);
             try {
-                return OpenWeatherHelper.getWeatherDataFromJson(json, 7);
+                OpenWeatherHelper ow = new OpenWeatherHelper(getActivity());
+                return ow.getWeatherDataFromJson(json, 7);
             }catch(Exception ex){
                 Log.e(this.getClass().getName(), ex.getMessage());
                 return null;

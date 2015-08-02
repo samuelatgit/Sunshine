@@ -1,5 +1,8 @@
 package com.example.slam.sunshine;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.text.format.Time;
 import android.util.Log;
 
@@ -14,9 +17,10 @@ import java.text.SimpleDateFormat;
  */
 public class OpenWeatherHelper {
     final static String LOG_TAG = "OpenWeatherHelper";
+    private Context _context;
 
-    public OpenWeatherHelper(){
-
+    public OpenWeatherHelper(Context context){
+        _context = context;
     }
     /**
      * The date/time conversion code is going to be moved outside the asynctask later,
@@ -32,13 +36,24 @@ public class OpenWeatherHelper {
     /**
      * Prepare the weather high/lows for presentation.
      */
-    public static String formatHighLows(double high, double low) {
-        // For presentation, assume the user doesn't care about tenths of a degree.
-        long roundedHigh = Math.round(high);
-        long roundedLow = Math.round(low);
+    public String formatHighLows(double high, double low) {
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(_context);
+        String unitType = sharedPrefs.getString(_context.getResources().getString(R.string.pref_temperature_unit_key),
+                _context.getResources().getString(R.string.pref_temperature_defaultValue));
+
+        boolean isImperial = unitType.equals(_context.getResources().getString(R.string.pref_temperature_unit_imperial));
+        // For presentation, assume the user doesn't care about tenths of a degree.'
+
+        long roundedHigh = (isImperial) ? ConvertImperial(high): Math.round(high);
+        long roundedLow = (isImperial) ? ConvertImperial(low) : Math.round(low);
 
         String highLowStr = roundedHigh + "/" + roundedLow;
         return highLowStr;
+    }
+
+    private static long ConvertImperial(double metric) {
+
+        return Math.round(metric * 1.8 + 32);
     }
 
     /**
@@ -48,7 +63,7 @@ public class OpenWeatherHelper {
      * Fortunately parsing is easy:  constructor takes the JSON string and converts it
      * into an Object hierarchy for us.
      */
-    public static String[] getWeatherDataFromJson(String forecastJsonStr, int numDays)
+    public String[] getWeatherDataFromJson(String forecastJsonStr, int numDays)
             throws JSONException {
 
         // These are the names of the JSON objects that need to be extracted.
